@@ -1,4 +1,5 @@
-import mongoose, { model } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
+
 import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema({
@@ -33,6 +34,15 @@ const userSchema = new mongoose.Schema({
     type: String,
     default:
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDobAZZfMUIx0nRIyNYYDx2eqFm55FJCdOjvLkMG8SZA&s",
+  },
+  followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  following: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  isPrivate: {
+    type: Boolean,
+    default: false,
+  },
+  oneWord: {
+    type: String,
   },
 });
 userSchema.pre("save", async function (next) {

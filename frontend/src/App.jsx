@@ -22,7 +22,7 @@ function App() {
           <Route path="/auth/register" element={<Register />} />
           <Route path="/" element={<MainApp />}>
             <Route index element={<ProtectedRoutes element={<Home />} />} />
-            <Route path="/profile" element={<Profile />}>
+            <Route path="/:username" element={<Profile />}>
               <Route index path="posts" element={<Posts />} />
               <Route path="replies" element={<Replies />} />
               <Route path="reposts" element={<Reposts />} />

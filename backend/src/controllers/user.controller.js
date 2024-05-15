@@ -218,3 +218,70 @@ export const handleUserLogin = async (req, res) => {
     });
   }
 };
+
+export const handleUserUpdate = async (req, res) => {
+  const { _id } = req.user;
+  const { fullName, bio, link, isPrivate, oneWord } = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(_id, {
+      fullName,
+      bio,
+      link,
+      isPrivate,
+      oneWord,
+    });
+    res.status(200).json({
+      success: true,
+      message: "Updated profile",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error?.message || "Something went wrong ",
+    });
+  }
+};
+
+export const getUserInformation = async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const user = await User.aggregate([
+      {
+        $match: {
+          username: username,
+        },
+      },
+      {
+        $addFields: {
+          followersCount: { $size: "$followers" },
+          followingCount: { $size: "$following" },
+        },
+      },
+      {
+        $project: {
+          username: 1,
+          fullName: 1,
+          avatar: 1,
+          bio: 1,
+          link: 1,
+          followersCount: 1,
+          followingCount: 1,
+          bio: 1,
+          oneWord: 1,
+        },
+      },
+    ]);
+    console.log(user);
+    res.status(200).json({
+      success: true,
+      message: "User data fetched",
+      data: user[0],
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error?.message || "Something went wrong",
+    });
+  }
+};
