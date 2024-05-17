@@ -5,7 +5,7 @@ import EditProfile from "../../components/User/EditProfile";
 import { MousePointer2 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import apiService from "../../services/api";
-import { Spinner } from "keep-react";
+import { Spinner, toast } from "keep-react";
 import { Dropdown } from "flowbite-react";
 
 const Profile = () => {
@@ -13,6 +13,7 @@ const Profile = () => {
     useContext(AppContext);
   const { username } = useParams();
   const [user, setUser] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [loggedInUserId, setLoggedInUserId] = useState();
   const handleEditProfileOpener = (user) => {
     setModalSize("xl");
@@ -41,8 +42,64 @@ const Profile = () => {
     decodeToken();
   }, []);
 
+  const handleAvatarUpload = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/jpeg, image/png";
+    input.onchange = async (e) => {
+      try {
+        setAvatarUploading(true);
+        const formData = new FormData();
+        formData.append("avatar", e.target.files[0]);
+        console.log(formData);
+        const config = {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        };
+
+        const response = await apiService.post(
+          "/api/users/avatar",
+          formData,
+          config
+        );
+
+        if (response && response.data && response.data.message) {
+          toast.success(response.data.message);
+          getProfile();
+        } else {
+          console.error("Invalid response format:", response);
+          toast.error("An error occurred while uploading the avatar.");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("An error occurred while uploading the avatar.");
+      } finally {
+        setAvatarUploading(false);
+      }
+    };
+    input.click();
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      setAvatarUploading(true);
+      const response = await apiService.delete("/api/users/avatar");
+      if (response && response.data && response.data.success) {
+        toast.success("Avatar removed");
+        getProfile();
+      } else {
+        console.error("Invalid response format:", response);
+        toast.error("Failed to remove avatar");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while removing the avatar");
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
   console.log(user);
-  console.log(loggedInUserId);
   return (
     <div className="flex flex-col items-center mt-16">
       <div className="max-w-xl   w-full text-white px-2">
@@ -54,37 +111,57 @@ const Profile = () => {
             <h1 className="text-xl font-semibold">{user?.fullName}</h1>
             <p>@{user?.username || "username"} </p>
           </div>
-
-          <Dropdown
-            label="top"
-            placement="left-bottom"
-            renderTrigger={() => (
-              <div className="w-20 h-20  cursor-pointer shadow-2xl shadow-blue-500/20 rounded-full overflow-hidden  relative">
-                <img
-                  src={
-                    user?.avatar ||
-                    "https://png.pngtree.com/thumb_back/fh260/background/20230612/pngtree-man-wearing-glasses-is-wearing-colorful-background-image_2905240.jpg"
-                  }
-                  alt=""
-                  className="object-cover w-full h-full"
-                />
-              </div>
-            )}
-            className="w-[250px] border-0 bg-[#262626] text-white hover:bg-[#262626]"
-          >
-            <Dropdown.Item
-              className="w-full text-white hover:text-gray-900"
-              onClick={() => alert("Dashboard!")}
+          {loggedInUserId === user?._id ? (
+            <Dropdown
+              label="top"
+              placement="left-bottom"
+              disabled={loggedInUserId === user?._id}
+              renderTrigger={() => (
+                <div className="w-20 h-20  cursor-pointer shadow-2xl shadow-blue-500/20 rounded-full overflow-hidden  relative">
+                  {avatarUploading ? (
+                    <div className="flex items-center w-full h-full justify-center">
+                      {" "}
+                      <Spinner color={"gray"} size={"xl"} />{" "}
+                    </div>
+                  ) : (
+                    <img
+                      src={
+                        user?.avatar?.link ||
+                        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YaByfUhHAO-d7019rYYInn903TwzM4YHwlIneRLY9A&s"
+                      }
+                      alt=""
+                      className="object-cover w-full h-full"
+                    />
+                  )}
+                </div>
+              )}
+              className="w-[250px] border-0 bg-[#262626] text-white hover:bg-[#262626]"
             >
-              Upload picture
-            </Dropdown.Item>
-            <Dropdown.Item
-              className="w-full text-red-500 "
-              onClick={() => alert("Settings!")}
-            >
-              Remove current picture
-            </Dropdown.Item>
-          </Dropdown>
+              <Dropdown.Item
+                className="w-full text-white hover:text-gray-900"
+                onClick={handleAvatarUpload}
+              >
+                Upload picture
+              </Dropdown.Item>
+              <Dropdown.Item
+                className="w-full text-red-500 "
+                onClick={handleRemoveAvatar}
+              >
+                Remove current picture
+              </Dropdown.Item>
+            </Dropdown>
+          ) : (
+            <div className="w-20 h-20  cursor-pointer shadow-2xl shadow-blue-500/20 rounded-full overflow-hidden  relative">
+              <img
+                src={
+                  user?.avatar?.link ||
+                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5YaByfUhHAO-d7019rYYInn903TwzM4YHwlIneRLY9A&s"
+                }
+                alt=""
+                className="object-cover w-full h-full"
+              />
+            </div>
+          )}
         </div>
         <div className="my-2">
           <p>{user?.bio || "Write Bio "}</p>

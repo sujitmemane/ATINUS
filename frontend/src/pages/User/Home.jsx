@@ -7,6 +7,17 @@ import Post from "../../components/Post/Post";
 const Home = () => {
   const { handleNewPostOpener } = useContext(AppContext);
   const [posts, setPosts] = useState([]);
+
+  const [user, setUser] = useState();
+
+  const getProfile = async () => {
+    try {
+      const response = await apiService.get(`/api/users/my`);
+
+      setUser(response?.data?.data);
+    } catch (error) {}
+  };
+
   const getAllPostsData = async () => {
     try {
       const response = await apiService.get("/api/posts/all");
@@ -15,6 +26,7 @@ const Home = () => {
   };
   useEffect(() => {
     getAllPostsData();
+    getProfile();
   }, []);
 
   const handleUpdatedPost = async (id) => {
@@ -40,7 +52,7 @@ const Home = () => {
             <div className="flex  items-center space-y-2 flex-col h-full justify-center w-10  ">
               <div className="w-10 h-10 shadow-2xl shadow-blue-500/20 rounded-full overflow-hidden  relative">
                 <img
-                  src="https://t3.ftcdn.net/jpg/02/43/12/34/360_F_243123463_zTooub557xEWABDLk0jJklDyLSGl2jrr.jpg"
+                  src={user?.avatar?.link}
                   alt=""
                   className="object-cover w-full h-full "
                 />
@@ -57,11 +69,7 @@ const Home = () => {
         </button>
         <div className="text-white">
           {posts.map((post) => (
-            <Post
-              post={post}
-              onUpdate={handleUpdatedPost}
-         
-            />
+            <Post post={post} onUpdate={handleUpdatedPost} />
           ))}
         </div>
       </div>

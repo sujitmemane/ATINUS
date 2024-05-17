@@ -31,9 +31,12 @@ const userSchema = new mongoose.Schema({
     type: String,
   },
   avatar: {
-    type: String,
-    default:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSDobAZZfMUIx0nRIyNYYDx2eqFm55FJCdOjvLkMG8SZA&s",
+    link: {
+      type: String,
+      default:
+        "https://instagram.fcgh33-1.fna.fbcdn.net/v/t51.2885-19/44884218_345707102882519_2446069589734326272_n.jpg?_nc_ht=instagram.fcgh33-1.fna.fbcdn.net&_nc_cat=1&_nc_ohc=TokSSzUDPVcQ7kNvgEIP3mV&edm=AJXOVykBAAAA&ccb=7-5&ig_cache_key=YW5vbnltb3VzX3Byb2ZpbGVfcGlj.2-ccb7-5&oh=00_AYAr0sbpiCj2dBA0DMJfhZKxVmD8ctEd5JHkuZuQdzW-VA&oe=664B5ACF&_nc_sid=07c3e7",
+    },
+    publicId: { type: String },
   },
   followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
   following: [{ type: Schema.Types.ObjectId, ref: "User" }],

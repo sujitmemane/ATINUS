@@ -131,6 +131,8 @@ export const getAllPosts = async (req, res) => {
       },
     ]);
 
+    console.log(posts);
+
     res.status(200).json({
       success: true,
       message: "All threads fetched successfull",
@@ -151,18 +153,19 @@ export const handlePostLike = async (req, res) => {
   try {
     const post = await Post.findById(postId);
     const isLikePresent = post.likes.some((id) => id.equals(_id));
-
+    let message;
     if (isLikePresent) {
       post.likes = post.likes.filter((id) => !id.equals(_id));
+      message = "Post unlinked";
     } else {
       post.likes.push(_id);
+      message = "Post liked";
     }
-
     await post.save();
 
     res.status(200).json({
       success: true,
-      message: "Liked or Unliked",
+      message,
     });
   } catch (error) {
     res.status(400).json({
@@ -174,6 +177,48 @@ export const handlePostLike = async (req, res) => {
 
 export const getSinglePost = async (req, res) => {
   const { postId } = req.params;
+  try {
+    const post = await Post.aggregate([
+      {
+        $match: {
+          _id: ObjectId.createFromHexString(postId),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $unwind: "$userDetails",
+      },
+      {
+        $project: {
+          user: 0,
+          "userDetails.password": 0,
+          "userDetails.fullName": 0,
+          "userDetails.email": 0,
+        },
+      },
+    ]);
+    res.status(200).json({
+      success: true,
+      message: "Post fetched successfully",
+      data: post?.[0],
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error?.message || "Something went wrong",
+    });
+  }
+};
+
+export const getDetailPost = async (req, res) => {
+  const { postId } = req.body;
   try {
     const post = await Post.aggregate([
       {

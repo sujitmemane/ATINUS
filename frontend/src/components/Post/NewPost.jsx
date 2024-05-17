@@ -11,8 +11,10 @@ import { AppContext } from "../../context/AppContextProvider";
 
 const NewPost = () => {
   const { setIsModalOpen, setModalContent } = useContext(AppContext);
+
   const [disabledBtn, setDisabledBtn] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState();
   const [contents, setContents] = useState([
     {
       text: "",
@@ -237,7 +239,17 @@ const NewPost = () => {
     setDisabledBtn(isDisabled);
   }, [lastContent]);
 
-  console.log(contents);
+  useEffect(() => {
+    const getProfile = async () => {
+      try {
+        const response = await apiService.get(`/api/users/my`);
+
+        setUser(response?.data?.data);
+      } catch (error) {}
+    };
+    getProfile();
+  }, []);
+  console.log("user", "user", user);
   return (
     <div>
       <div className="bg-[#0f0f0f] border-[1px] border-[#262626] rounded-md shadow-[0px_4px_16px_rgba(17,17,26,0.1),_0px_8px_24px_rgba(17,17,26,0.1),_0px_16px_56px_rgba(17,17,26,0.1)] flex-col items-center justify-between px-4 py-8  text-white m-0 overflow-hidden">
@@ -254,7 +266,7 @@ const NewPost = () => {
               >
                 <div className="w-10 h-10 shadow-2xl shadow-blue-500/20 rounded-full overflow-hidden  relative">
                   <img
-                    src="https://t3.ftcdn.net/jpg/02/43/12/34/360_F_243123463_zTooub557xEWABDLk0jJklDyLSGl2jrr.jpg"
+                    src={user?.avatar.link}
                     alt=""
                     className="object-cover w-full h-full "
                   />
@@ -264,7 +276,7 @@ const NewPost = () => {
 
               <div className="flex-1" style={{ height: "100%" }}>
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold">sujitmemane</p>
+                  <p className="font-semibold">{user?.username}</p>
                   {index > 0 && (
                     <X
                       size={20}
@@ -407,7 +419,7 @@ const NewPost = () => {
             <div className="flex  items-center space-y-2 flex-col h-full justify-center w-10  ">
               <div className="w-6 h-6 shadow-2xl shadow-blue-500/20 rounded-full overflow-hidden  relative">
                 <img
-                  src="https://t3.ftcdn.net/jpg/02/43/12/34/360_F_243123463_zTooub557xEWABDLk0jJklDyLSGl2jrr.jpg"
+                  src={user?.avatar?.link}
                   alt=""
                   className="object-cover w-full h-full "
                 />
@@ -423,7 +435,7 @@ const NewPost = () => {
           <button
             disabled={disabledBtn || contentError || loading}
             onClick={onSubmit}
-            className="px-4 py-2 text-sm font-semibold disabled:bg-red-200 disabled:cursor-not-allowed bg-white text-gray-900 rounded-full"
+            className="px-4 py-2 text-sm font-semibold disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 rounded-full"
           >
             {loading && <Spinner />} Post
           </button>

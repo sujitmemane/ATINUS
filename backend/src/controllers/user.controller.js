@@ -1,6 +1,10 @@
 import User from "../models/user.model.js";
 import brypt from "bcrypt";
 import { createToken } from "../utils/index.js";
+import {
+  deleteImageCloudinary,
+  uploadOnCloudinary,
+} from "../utils/cloudinary.js";
 
 export const handleUserValidation = async (req, res) => {
   const { phoneNumber, email, fullName, username, password } = req.body;
@@ -279,6 +283,85 @@ export const getUserInformation = async (req, res) => {
       data: user[0],
     });
   } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error?.message || "Something went wrong",
+    });
+  }
+};
+
+export const getMyInformation = async (req, res) => {
+  const { _id } = req.user;
+
+  try {
+    const user = await User.findById(_id);
+    console.log("nsvs", user);
+    res.status(200).json({
+      success: true,
+      message: "User fetched",
+      data: user,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error?.message || "Something went wrong",
+    });
+  }
+};
+
+export const handleRemoveAvatar = async (req, res) => {
+  const { _id } = req.user;
+  try {
+    const user = await User.findById(_id);
+
+    if (user.avatar) {
+      user.avatar.link = "";
+      let publicId = user.avatar.publicId;
+      user.avatar.publicId = "";
+      await user.save();
+      await deleteImageCloudinary(publicId);
+    }
+
+    res.statuss(200).json({
+      success: true,
+      message: "Image deleted",
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error?.message || "Something went wrong",
+    });
+  }
+};
+
+export const handleAvatarUpload = async (req, res) => {
+  const { _id } = req.user;
+
+  try {
+    const user = await User.findById(_id);
+    if (user.avatar) {
+      user.avatar.link = "";
+      let publicId = user.avatar.publicId;
+      user.avatar.publicId = "";
+      await user.save();
+      await deleteImageCloudinary(publicId);
+    }
+
+    const response = await uploadOnCloudinary(req.file.path);
+
+    user.avatar = {
+      link: response?.url,
+      publicId: response.public_id,
+    };
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Avatar Updated successfully!",
+    });
+  } catch (error) {
+    console.log(error);
     res.status(400).json({
       success: false,
       message: error?.message || "Something went wrong",

@@ -7,16 +7,29 @@ import {
   Squirrel,
   User,
 } from "lucide-react";
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { HiOutlineBars3BottomRight } from "react-icons/hi2";
 import { Dropdown } from "flowbite-react";
 import { AppContext } from "../context/AppContextProvider";
 import NewPost from "./Post/NewPost";
+import apiService from "../services/api";
 
 const Navbar = () => {
   const { setIsModalOpen, setModalContent, setModalSize, handleNewPostOpener } =
     useContext(AppContext);
+  const [user, setUser] = useState();
+  useEffect(() => {
+    const getProfile = async () => {
+      try {
+        const response = await apiService.get(`/api/users/my`);
+
+        setUser(response?.data?.data);
+      } catch (error) {}
+    };
+    getProfile();
+  }, []);
+  console.log(user);
 
   return (
     <div className="flex flex-col items-center justify-center fixed top-0 w-full py-2 bg-[#0f0f0f]">
@@ -38,7 +51,10 @@ const Navbar = () => {
             Activity
           </Link>
 
-          <Link to="profile" className=" py-2 rounded  px-4 hover:bg-[#262626]">
+          <Link
+            to={`/${user?.username}`}
+            className=" py-2 rounded  px-4 hover:bg-[#262626]"
+          >
             Profile
           </Link>
         </div>

@@ -12,6 +12,7 @@ import Modal from "./UI/Modal";
 import OnModal from "./UI/OnModal";
 import Home from "./pages/User/Home";
 import ProtectedRoutes from "./components/ProtectedRoutes";
+import Post from "./pages/User/Post";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/auth/register" element={<Register />} />
           <Route path="/" element={<MainApp />}>
             <Route index element={<ProtectedRoutes element={<Home />} />} />
+            <Route path="/:username/post/:postId" element={<Post />} />
             <Route path="/:username" element={<Profile />}>
               <Route index path="posts" element={<Posts />} />
               <Route path="replies" element={<Replies />} />
